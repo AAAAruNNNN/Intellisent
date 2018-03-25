@@ -41,6 +41,7 @@ def scrape_tweets(request):
                              likes=tw.likes,
                              hashtags=clean_tags,
                              tweet_class=99,
+                             emoji_checked=1,
                              query=request.POST.get('query'))
                 if '#tvtime' in t.text:
                     t.tweet_class = 0
@@ -76,6 +77,12 @@ def classify_tweets(request):
         elif tweet_class == 'junk':
             t.tweet_class = 2
 
+        other_tweets = Tweet.objects.filter(text=t.text)
+
+        if other_tweets.count():
+            for x in other_tweets:
+                x.tweet_class = t.tweet_class
+                x.save()
         t.save()
 
 

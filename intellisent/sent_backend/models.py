@@ -15,6 +15,7 @@ class Tweet(models.Model):
     hashtags = models.CharField(max_length=200)
     tweet_class = models.IntegerField(null=True, default=None)
     query = models.CharField(max_length=50, default=None)
+    emoji_checked = models.IntegerField(default=0)
 
     def __str__(self):
         return self.user + ": " + self.text
