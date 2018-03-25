@@ -5,12 +5,12 @@ import re
 def clean_tweets(text, show):
 	text = re.sub(r'http\S+', ' <URL> ', text.lower())
 	text = re.sub(r'@[\S]+', ' <HANDLE> ', text)
-	text = re.sub(show.lower(), ' <SHOW_NAME> ', text)	
-	show_words = show.lower().split(' ')
-	text = re.sub(''.join(show_words), ' <SHOW_NAME> ', text)
 	text = re.sub(r'#(\S+)', r' \1 ', text)
 	text = re.sub(r'\brt\b', '', text)
 	text = re.sub(r'\.{2,}', ' ', text)
+	text = re.sub(show.lower(), ' <SHOW_NAME> ', text)	
+	show_words = show.lower().split(' ')
+	text = re.sub(''.join(show_words), ' <SHOW_NAME> ', text)
 	text = text.strip(' "\'')
 	text = re.sub(r'\s+', ' ', text)
 
@@ -26,6 +26,22 @@ def clean_tweets(text, show):
 def keep_required(csv_file):
 	df = pd.read_csv(csv_file)
 	df = df[['tweet_id', 'tweet_class', 'text', 'query']]
+
+	smallest_len = min( len(df[df['tweet_class'] == 1]),
+						len( df[df['tweet_class'] == -1]),
+						len( df[df['tweet_class'] == 0]),
+						len( df[df['tweet_class'] == 2]),
+ 						)
+
+	data = pd.DataFrame()
+	data = data.append(df[df['tweet_class']==-1])
+	data = data.append(df[df['tweet_class']==0])
+	data = data.append(df[df['tweet_class']==1])
+	data = data.append(df[df['tweet_class']==2])
+
+	df = data.copy()
+
+	df = df.sample(frac=1)
 
 	df['clean']  = df.apply(lambda x: clean_tweets(x['text'], x['query']), axis=1)
 

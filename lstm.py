@@ -1,22 +1,22 @@
 import numpy as np
 import sys
-import pandas as pd
 from keras.models import Sequential, load_model
 from keras.layers import Dense, Dropout, Activation
 from keras.layers import Embedding
 from keras.callbacks import ModelCheckpoint, ReduceLROnPlateau
 from keras.layers import LSTM
-from keras.utils import to_categorical
 import utils
 from keras.preprocessing.sequence import pad_sequences
-import csv
 
-FREQ_DIST_FILE = 'tweets_new_train-freqdist.pkl'
-BI_FREQ_DIST_FILE = 'tweets_new_train-freqdist-bi.pkl'
-TRAIN_PROCESSED_FILE = 'tweets_new_train.csv'
-TEST_PROCESSED_FILE = 'tweets_new_test.csv'
-GLOVE_FILE = 'glove.twitter.27B.200d.txt'
+# Performs classification using LSTM network.
+
+FREQ_DIST_FILE = '../train-processed-freqdist.pkl'
+BI_FREQ_DIST_FILE = '../train-processed-freqdist-bi.pkl'
+TRAIN_PROCESSED_FILE = '../train-processed.csv'
+TEST_PROCESSED_FILE = '../test-processed.csv'
+GLOVE_FIEL = './dataset/glove-seeds.txt'
 dim = 200
+
 
 def get_glove_vectors(vocab):
     print 'Looking for GLOVE vectors'
@@ -53,20 +53,22 @@ def process_tweets(csv_file, test_file=True):
     tweets = []
     labels = []
     print 'Generating feature vectors'
-    df = pd.read_csv(csv_file)
-
-    def get_info(text, tweet_class):
-    	feature_vector = get_feature_vector(text)
-    	if test_file:
-    		tweets.append(feature_vector)
-    	else:
-    		tweets.append(feature_vector)
-    		labels.append(tweet_class)
-
-	# df['clean']  = df.apply(lambda x: clean_tweets(x['text'], x['query']), axis=1)
-
-    df.apply(lambda row: get_info(row['text'], row['tweet_class']), axis=1)
-
+    with open(csv_file, 'r') as csv:
+        lines = csv.readlines()
+        total = len(lines)
+        for i, line in enumerate(lines):
+            if test_file:
+                tweet_id, tweet = line.split(',')
+            else:
+                tweet_id, sentiment, tweet = line.split(',')
+            feature_vector = get_feature_vector(tweet)
+            if test_file:
+                tweets.append(feature_vector)
+            else:
+                tweets.append(feature_vector)
+                labels.append(int(sentiment))
+            utils.write_status(i + 1, total)
+    print '\n'
     return tweets, np.array(labels)
 
 
@@ -78,9 +80,8 @@ if __name__ == '__main__':
     max_length = 40
     filters = 600
     kernel_size = 3
-    vocab = utils.top_n_words(FREQ_DIST_FILE, vocab_size, shift=1)
+    vocab = utils.top_n_words(FREQ_DIST_FLIE, vocab_size, shift=1)
     glove_vectors = get_glove_vectors(vocab)
-
     tweets, labels = process_tweets(TRAIN_PROCESSED_FILE, test_file=False)
     embedding_matrix = np.random.randn(vocab_size + 1, dim) * 0.01
     for word, i in vocab.items():
@@ -99,32 +100,19 @@ if __name__ == '__main__':
         model.add(Dense(64))
         model.add(Dropout(0.5))
         model.add(Activation('relu'))
-        model.add(Dense(4))
+        model.add(Dense(1))
         model.add(Activation('sigmoid'))
-        model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+        model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
         filepath = "./models/lstm-{epoch:02d}-{loss:0.3f}-{acc:0.3f}-{val_loss:0.3f}-{val_acc:0.3f}.hdf5"
         checkpoint = ModelCheckpoint(filepath, monitor="loss", verbose=1, save_best_only=True, mode='min')
         reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=2, min_lr=0.000001)
         print model.summary()
-
-        transformed_labels = to_categorical(labels)
-
-        model.fit(tweets, transformed_labels, batch_size=128, epochs=5, validation_split=0.1, shuffle=True, callbacks=[checkpoint, reduce_lr])
+        model.fit(tweets, labels, batch_size=128, epochs=5, validation_split=0.1, shuffle=True, callbacks=[checkpoint, reduce_lr])
     else:
         model = load_model(sys.argv[1])
         print model.summary()
-        text = pd.read_csv(TEST_PROCESSED_FILE)
-        text = text[['text', 'tweet_class']]
         test_tweets, _ = process_tweets(TEST_PROCESSED_FILE, test_file=True)
         test_tweets = pad_sequences(test_tweets, maxlen=max_length, padding='post')
         predictions = model.predict(test_tweets, batch_size=128, verbose=1)
-        # results = zip(map(str, range(len(test_tweets))), np.round(predictions[:, 0]).astype(int))
-        results = zip(map(str, range(len(test_tweets))), predictions)
-        # utils.save_results_to_csv(results, 'lstm.csv')
-        with open('lstm.csv', 'w') as f:
-            fieldnames = ['id', 'text', 'prediction', 'predicted label', 'label'] 
-            writer = csv.DictWriter(f, fieldnames=fieldnames)
-            writer.writeheader()
-            for i in range(len(results)):
-                l = {'id': i, 'text': text.loc[i, 'text'] , 'prediction' : results[i][1], 'predicted label': np.argmax(results[i][1]),'label': text.loc[i, 'tweet_class']}
-                writer.writerow(l)
+        results = zip(map(str, range(len(test_tweets))), np.round(predictions[:, 0]).astype(int))
+        utils.save_results_to_csv(results, 'lstm.csv')
