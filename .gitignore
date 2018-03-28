@@ -136,3 +136,4 @@ venv.bak/
 !.elasticbeanstalk/*.global.yml
 *.pkl
 *.txt
+*.hdf5

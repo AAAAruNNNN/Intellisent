@@ -79,5 +79,5 @@ def split_data(tweets, validation_split=0.1):
         (list, list): training-set, validation-set
     """
     index = int((1 - validation_split) * len(tweets))
-    random.shuffle(tweets)
+    # random.shuffle(tweets)
     return tweets[:index], tweets[index:]

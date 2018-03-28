@@ -35,7 +35,6 @@ def get_glove_vectors(vocab):
     print 'Found %d words in GLOVE' % found
     return glove_vectors
 
-
 def get_feature_vector(tweet):
     words = tweet.split()
     feature_vector = []
@@ -69,7 +68,6 @@ def process_tweets(csv_file, test_file=True):
 
     return tweets, np.array(labels)
 
-
 if __name__ == '__main__':
     train = len(sys.argv) == 1
     np.random.seed(1337)
@@ -100,7 +98,7 @@ if __name__ == '__main__':
         model.add(Dropout(0.5))
         model.add(Activation('relu'))
         model.add(Dense(4))
-        model.add(Activation('sigmoid'))
+        model.add(Activation('softmax'))
         model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
         filepath = "./models/lstm-{epoch:02d}-{loss:0.3f}-{acc:0.3f}-{val_loss:0.3f}-{val_acc:0.3f}.hdf5"
         checkpoint = ModelCheckpoint(filepath, monitor="loss", verbose=1, save_best_only=True, mode='min')
@@ -109,7 +107,7 @@ if __name__ == '__main__':
 
         transformed_labels = to_categorical(labels)
 
-        model.fit(tweets, transformed_labels, batch_size=128, epochs=5, validation_split=0.1, shuffle=True, callbacks=[checkpoint, reduce_lr])
+        model.fit(tweets, transformed_labels, batch_size=128, epochs=30, validation_split=0.1, shuffle=True, callbacks=[checkpoint, reduce_lr])
     else:
         model = load_model(sys.argv[1])
         print model.summary()
@@ -121,6 +119,59 @@ if __name__ == '__main__':
         # results = zip(map(str, range(len(test_tweets))), np.round(predictions[:, 0]).astype(int))
         results = zip(map(str, range(len(test_tweets))), predictions)
         # utils.save_results_to_csv(results, 'lstm.csv')
+
+        #confusion matrix
+
+        # negneg, negneu, negpos, negjunk = 0, 0, 0, 0
+        # neuneg, neuneu, neupos, neujunk = 0, 0, 0, 0
+        # posneg, posneu, pospos, posjunk = 0, 0, 0, 0
+        # junkneg, junkneu, junkpos, junkjunk = 0, 0, 0, 0
+
+        # cmatrix = [ [0, 0, 0, 0],
+        #             [0, 0, 0, 0],
+        #             [0, 0, 0, 0],
+        #             [0, 0, 0, 0] ] 
+
+        # for value, p in [0, 1, 2, 3]: 
+        #     for p in predictions:
+        #         p = np.argmax(p)
+                # if value == 3 and p == 0:
+                #     cmatrix[value][p] += 1 
+                # if value == 3 and p == 1: 
+                #     cmatrix[value][p] += 1 
+                # if value == 3 and p ==2:
+                #     cmatrix[value][p] += 1 
+                # if value == 3 and p == 3:
+                #     cmatrix[value][p] += 1 
+                # if value == 0 and p == 0:
+                #     cmatrix[value][p] += 1 
+                # if value == 0 and p == 1:
+                #     cmatrix[value][p] += 1 
+                # if value == 0 and p == 2:
+                #     cmatrix[value][p] += 1 
+                # if value == 0 and p == 3:
+                #     cmatrix[value][p] += 1 
+                # if value == 1 and p == 0:
+                #     cmatrix[value][p] += 1 
+                # if value == 1 and p == 1:
+                #     cmatrix[value][p] += 1 
+                # if value == 1 and p == 2:
+                #     cmatrix[value][p] += 1 
+                # if value == 1 and p == 3:
+                #     cmatrix[value][p] += 1 
+                # if value == 2 and p == 0:
+                #     cmatrix[value][p] += 1 
+                # if value == 2 and p == 1:
+                #     cmatrix[value][p] += 1 
+                # if value == 2 and p == 2:
+                #     cmatrix[value][p] += 1 
+                # if value == 2 and p == 3:
+                #     cmatrix[value][p] += 1 
+
+        # for i in range(4):
+        #     print cmatrix[i] 
+        #     print('\n')
+
         with open('lstm.csv', 'w') as f:
             fieldnames = ['id', 'text', 'prediction', 'predicted label', 'label'] 
             writer = csv.DictWriter(f, fieldnames=fieldnames)
@@ -128,3 +179,53 @@ if __name__ == '__main__':
             for i in range(len(results)):
                 l = {'id': i, 'text': text.loc[i, 'text'] , 'prediction' : results[i][1], 'predicted label': np.argmax(results[i][1]),'label': text.loc[i, 'tweet_class']}
                 writer.writerow(l)
+
+        df = pd.read_csv('lstm.csv')
+
+
+        cmatrix = [ [0, 0, 0, 0],
+                    [0, 0, 0, 0],
+                    [0, 0, 0, 0],
+                    [0, 0, 0, 0] ] 
+
+        for i, row in df.iterrows():
+            p = row['predicted label']
+            value = row['label']
+
+            if value == 3 and p == 0:
+                cmatrix[value][p] += 1 
+            if value == 3 and p == 1: 
+                cmatrix[value][p] += 1 
+            if value == 3 and p ==2:
+                cmatrix[value][p] += 1 
+            if value == 3 and p == 3:
+                cmatrix[value][p] += 1 
+            if value == 0 and p == 0:
+                cmatrix[value][p] += 1 
+            if value == 0 and p == 1:
+                cmatrix[value][p] += 1 
+            if value == 0 and p == 2:
+                cmatrix[value][p] += 1 
+            if value == 0 and p == 3:
+                cmatrix[value][p] += 1 
+            if value == 1 and p == 0:
+                cmatrix[value][p] += 1 
+            if value == 1 and p == 1:
+                cmatrix[value][p] += 1 
+            if value == 1 and p == 2:
+                cmatrix[value][p] += 1 
+            if value == 1 and p == 3:
+                cmatrix[value][p] += 1 
+            if value == 2 and p == 0:
+                cmatrix[value][p] += 1 
+            if value == 2 and p == 1:
+                cmatrix[value][p] += 1 
+            if value == 2 and p == 2:
+                cmatrix[value][p] += 1 
+            if value == 2 and p == 3:
+                cmatrix[value][p] += 1 
+
+        for i in range(4):
+            print(str(i) + " :")
+            print cmatrix[i] 
+            print('\n')

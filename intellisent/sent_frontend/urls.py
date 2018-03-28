@@ -6,5 +6,8 @@ app_name = 'frontend'
 
 urlpatterns = [
     path('', views.index, name='index'),
-    path('channel', views.index, name='channel')
+    path('channels', views.channels, name='channels'),
+    path('channel/<int:cid>', views.programs, name='programs'),
+    path('channel/<int:cid>/show/<int:sid>', views.episodes, name='episodes'),
+    path('channel/<int:cid>/show/<int:sid>/episode/<int:eid>', views.episode_sentiment , name='episode_sentiment')
 ]

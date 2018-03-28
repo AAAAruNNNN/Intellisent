@@ -27,7 +27,7 @@ def scrape_tweets(request):
                 limit = 2000
             elif num == 3:
                 limit = 10000
-            q = Query(request.POST.get('query'), limit=limit)
+            q = Query("request.POST.get('query')", limit=limit)
             async for tw in q.get_tweets():
                 clean_tags = ' '.join(tw.hashtags)
                 t = Tweet(user=tw.user,
