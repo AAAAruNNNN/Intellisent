@@ -1,0 +1,31 @@
+{% extends 'sent_frontend/base.html' %}
+{% load staticfiles %}
+
+{% block title %}Channels{% endblock %}
+
+{% block header %}Channels{% endblock %}
+
+
+{% block content %}
+
+<div class="container-fluid">
+    <div class ="row">
+        <div class="col-lg-3">
+            <div class = "card">
+            <h4 class="card-title">{{ channel.name }}</h4>
+            <h6 class="card-subtitle">Listings of our programs</h6>
+
+            <ul>
+                {% for program in programs %}
+                <li><a href="/channel/{{ channel.id }}/show/{{ program.id }}">{{ program.name }}</a></li>
+                {% endfor %}
+              </ul>
+
+            </div>
+
+        </div>
+    </div>
+
+        
+</div>
+{% endblock %}

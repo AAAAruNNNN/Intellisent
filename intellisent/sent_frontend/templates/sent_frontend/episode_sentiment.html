@@ -1,0 +1,25 @@
+{% extends 'sent_frontend/base.html' %}
+{% load staticfiles %}
+
+{% block title %}{{ show.name }}{% endblock %}
+
+{% block header %}{{ show.name }}{% endblock %}
+
+
+{% block content %}
+
+<div class="container-fluid">
+    <div class ="row">
+        <div class="col-lg-3">
+            <div class = "card">
+            <h6 class="card-subtitle">HERE ARE THE SENTIMENTS! for {{ episode.airtime }} </h6>
+
+
+            </div>
+
+        </div>
+    </div>
+
+        
+</div>
+{% endblock %}
