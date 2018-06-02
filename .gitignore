@@ -149,3 +149,4 @@ models/
 models
 intellisent/static/
 static
+.vscode
