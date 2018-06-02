@@ -138,3 +138,11 @@ venv.bak/
 *.txt
 *.hdf5
 .models
+
+intellisent/sent_frontend/migrations/hide/
+
+intellisent/sent_frontend/migrations/
+
+*.csv#
+
+models/
