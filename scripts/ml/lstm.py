@@ -34,7 +34,7 @@ def get_glove_vectors(vocab):
     print '\n'
     print 'Found %d words in GLOVE' % found
     return glove_vectors
-
+ 
 
 def get_feature_vector(tweet):
     words = tweet.split()
@@ -71,7 +71,7 @@ def process_tweets(csv_file, test_file=True):
     print '\n'
     return tweets, np.array(labels)
 
-
+ 
 if __name__ == '__main__':
     train = len(sys.argv) == 1
     np.random.seed(1337)
