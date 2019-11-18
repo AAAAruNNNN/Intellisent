@@ -9,7 +9,7 @@ import utils
 from keras.preprocessing.sequence import pad_sequences
 
 # Performs classification using LSTM network.
-
+# Long Short Term Memory
 FREQ_DIST_FILE = '../train-processed-freqdist.pkl'
 BI_FREQ_DIST_FILE = '../train-processed-freqdist-bi.pkl'
 TRAIN_PROCESSED_FILE = '../train-processed.csv'

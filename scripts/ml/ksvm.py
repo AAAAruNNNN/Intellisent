@@ -7,7 +7,7 @@ from sklearn.feature_extraction.text import TfidfTransformer
 import pandas as pd
 
 # Performs classification using SVM.
-
+# Support Vector Machine
 FREQ_DIST_FILE = 'tweets_new_train-freqdist.pkl'
 BI_FREQ_DIST_FILE = 'tweets_new_train-freqdist-bi.pkl'
 TRAIN_PROCESSED_FILE = 'tweets_new_train.csv'
